@@ -1,4 +1,6 @@
 mod tcp_simulator;
+mod data_structure;
+mod component;
 use std::{thread, time::Duration};
 
 use tcp_simulator::TCPSimulator;
