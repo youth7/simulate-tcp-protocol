@@ -20,8 +20,8 @@ impl TCPSimulator {
         let (tx1_in_proxy, rx_in_end_point2) = mpsc::channel::<IPV4Packet>();
         let (tx_in_end_porint2, rx2_in_proxy) = mpsc::channel::<IPV4Packet>(); // end point2 ⟽ proxy ⟽ end point2
         let (tx2_in_proxy, rx_in_end_point1) = mpsc::channel::<IPV4Packet>();
-        let end_point1 = EndPoint::new(123, tx_in_end_porint1, rx_in_end_point1);
-        let end_point2 = EndPoint::new(123, tx_in_end_porint2, rx_in_end_point2);
+        let end_point1 = EndPoint::new(123,"client", tx_in_end_porint1, rx_in_end_point1);
+        let end_point2 = EndPoint::new(123, "server", tx_in_end_porint2, rx_in_end_point2);
         let proxy = Proxy::new(tx1_in_proxy, rx1_in_proxy, tx2_in_proxy, rx2_in_proxy);
         TCPSimulator {
             end_point1,

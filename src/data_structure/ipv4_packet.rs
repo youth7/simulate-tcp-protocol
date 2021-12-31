@@ -13,12 +13,12 @@ impl IPV4Packet {
 
 #[derive(Debug)]
 pub struct IPV4Header {
-    src_port: u16,
-    dest_port: u16,
-    seq: u32,
-    ack: u32,
+    pub src_port: u16,
+    pub dest_port: u16,
+    pub seq: u32,
+    pub ack: u32,
     // header_size: u8,
-    flag: Flag,
+    pub flag: Flag,
     // window_size: u16,
 }
 

@@ -25,29 +25,27 @@ impl Proxy {
     ) -> Proxy {
         let buffer1 = share_buffer();
         let buffer2 = share_buffer();
-        Proxy::receive_data(Arc::clone(&buffer1), rx1);
-        Proxy::receive_data(Arc::clone(&buffer2), rx2);
-        Proxy::send_data(Arc::clone(&buffer1), tx1);
-        Proxy::send_data(Arc::clone(&buffer2), tx2);
+        Proxy::start_to_receive_data(Arc::clone(&buffer1), rx1);
+        Proxy::start_to_receive_data(Arc::clone(&buffer2), rx2);
+        Proxy::start_to_send_data(Arc::clone(&buffer1), tx1);
+        Proxy::start_to_send_data(Arc::clone(&buffer2), tx2);
         Proxy { buffer2, buffer1 }
     }
 
-    fn receive_data(buffer: ShareBuffer, rx: Receiver<IPV4Packet>) {
+    fn start_to_receive_data(buffer: ShareBuffer, rx: Receiver<IPV4Packet>) {
         thread::spawn(move || loop {
             let data = rx.recv().unwrap();
-            println!("proxy：从channel中读取到一个包{:?}", data);
+            // println!("proxy：从channel中读取到一个包，塞到buffer {:?}", data);
             let mut internal_buffer = buffer.lock().unwrap();
-            // println!("2{:?}", "2");
             internal_buffer.push_back(data);
-            // println!("3{:?}", "3");
         });
     }
 
-    fn send_data(buffer: ShareBuffer, tx: Sender<IPV4Packet>) {
+    fn start_to_send_data(buffer: ShareBuffer, tx: Sender<IPV4Packet>) {
         thread::spawn(move || loop {
             let mut internal_buffer = buffer.lock().unwrap();
             if let Some(data) = internal_buffer.pop_back() {
-                println!("proxy：从buffer中读取到一个包{:?}", data);
+                // println!("proxy：从buffer 中读取到一个包，发到channel {:?}", data);
                 tx.send(data).unwrap();
             }
         });
