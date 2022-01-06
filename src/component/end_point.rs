@@ -63,17 +63,15 @@ impl EndPoint {
         thread::spawn(move || loop {
             let data = rx.recv().unwrap();
             //这里晚点用sleep来实现积累确认，即使是积累确认也必须逐个检查packet的类型的
-            let mut status = self.status.lock().unwrap();
+            let status = self.status.lock().unwrap();
             self.display_packet(&data);
             //根据自己的状态和对方发送的包的类型，设置自身的多种状态，以及需要回应的包
             match *status {
                 Status::LISTEN => {
-                    self.handle_while_listen(data).unwrap();
-                    *status = Status::SynReceived;
+                    self.handle_while_listen(data, status).unwrap();
                 }
                 Status::SynSend => {
-                    self.handle_while_syn_sent(data).unwrap();
-                    *status = Status::ESTABLISHED;
+                    self.handle_while_syn_sent(data, status).unwrap();                    
                 }
 
                 _ => {
@@ -86,7 +84,7 @@ impl EndPoint {
         });
     }
 
-    fn handle_while_listen(&self, data: IPV4Packet) -> Result<(), SendError<IPV4Packet>> {
+    fn handle_while_listen(&self, data: IPV4Packet, mut status: MutexGuard<Status>) -> Result<(), SendError<IPV4Packet>> {
         let ack_packet = IPV4Packet::new(IPV4Header::new(
             self.port,
             data.header.src_port,
@@ -94,10 +92,11 @@ impl EndPoint {
             data.header.seq + 1, // 根据对方
             Flag::ACK,
         ));
+        *status = Status::SynReceived;
         self.tx.send(ack_packet)
     }
 
-    fn handle_while_syn_sent(&self, data: IPV4Packet) -> Result<(), SendError<IPV4Packet>> {
+    fn handle_while_syn_sent(&self, data: IPV4Packet, mut status: MutexGuard<Status>) -> Result<(), SendError<IPV4Packet>> {
         
         let ack_packet = IPV4Packet::new(IPV4Header::new(
             self.port,
@@ -106,6 +105,7 @@ impl EndPoint {
             data.header.seq + 1,
             Flag::ACK,
         ));
+        *status = Status::ESTABLISHED;
         self.tx.send(ack_packet)
     }
 
