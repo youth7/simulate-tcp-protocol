@@ -35,7 +35,7 @@ impl Proxy {
     fn start_to_receive_data(buffer: ShareBuffer, rx: Receiver<IPV4Packet>) {
         thread::spawn(move || loop {
             let data = rx.recv().unwrap();
-            // println!("proxy：从channel中读取到一个包，塞到buffer {:?}", data);
+            // println!("【proxy】channel => buffer : {:?}", data);
             let mut internal_buffer = buffer.lock().unwrap();
             internal_buffer.push_back(data);
         });
@@ -45,7 +45,7 @@ impl Proxy {
         thread::spawn(move || loop {
             let mut internal_buffer = buffer.lock().unwrap();
             if let Some(data) = internal_buffer.pop_back() {
-                // println!("proxy：从buffer 中读取到一个包，发到channel {:?}", data);
+                // println!("【proxy】buffer => channel : {:?}", data);
                 tx.send(data).unwrap();
             }
         });

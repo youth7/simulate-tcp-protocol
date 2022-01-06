@@ -4,10 +4,6 @@ use crate::data_structure::ipv4_packet::IPV4Packet;
 use std::sync::mpsc;
 
  
-
-//////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////////
 pub struct TCPSimulator {
     end_point1: EndPoint,
     end_point2: EndPoint,
@@ -20,18 +16,19 @@ impl TCPSimulator {
         let (tx1_in_proxy, rx_in_end_point2) = mpsc::channel::<IPV4Packet>();
         let (tx_in_end_porint2, rx2_in_proxy) = mpsc::channel::<IPV4Packet>(); // end point2 ⟽ proxy ⟽ end point2
         let (tx2_in_proxy, rx_in_end_point1) = mpsc::channel::<IPV4Packet>();
-        let end_point1 = EndPoint::new(123,"client", tx_in_end_porint1, rx_in_end_point1);
-        let end_point2 = EndPoint::new(123, "server", tx_in_end_porint2, rx_in_end_point2);
+        let end_point1 = EndPoint::new(666,"client", tx_in_end_porint1, rx_in_end_point1);
+        let end_point2 = EndPoint::new(777, "server", tx_in_end_porint2, rx_in_end_point2);
         let proxy = Proxy::new(tx1_in_proxy, rx1_in_proxy, tx2_in_proxy, rx2_in_proxy);
         TCPSimulator {
             end_point1,
             end_point2,
-            proxy,
+            proxy
         }
     }
 
     // 模拟三次握手的连接
     pub fn three_way_hand_shake(&self) {
-        &self.end_point1.syn();
+        self.end_point2.listen().unwrap();
+        self.end_point1.syn(self.end_point2.port).unwrap();
     }
 }
