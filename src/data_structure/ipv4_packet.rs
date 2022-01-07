@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug)]
 pub struct IPV4Packet {
@@ -8,6 +9,12 @@ pub struct IPV4Packet {
 impl IPV4Packet {
     pub fn new(header: IPV4Header) -> IPV4Packet {
         IPV4Packet { header }
+    }
+}
+
+impl Display for IPV4Packet{
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "seq:{} ack:{} flag:{}", self.header.seq, self.header.ack, self.header.flag)
     }
 }
 
@@ -38,16 +45,58 @@ impl IPV4Header {
         todo!();
     }
 }
-
 #[derive(Debug)]
-pub enum Flag {
-    NS,
-    CWR,
-    ECE,
-    URG,
-    ACK,
-    PSH,
-    RST,
-    SYN,
-    FIN,
+pub struct Flag {
+    ns: bool,
+    cwr: bool,
+    ece: bool,
+    urg: bool,
+    ack: bool,
+    psh: bool,
+    rst: bool,
+    syn: bool,
+    fin: bool,
 }
+impl Flag {
+    pub fn new() -> Flag {
+        Flag {
+            ns: false,
+            cwr: false,
+            ece: false,
+            urg: false,
+            ack: false,
+            psh: false,
+            rst: false,
+            syn: false,
+            fin: false,
+        }
+    }
+
+    pub fn enable_ack(mut self) -> Flag {
+        self.ack = true;
+        self
+    }
+    pub fn enable_syn(mut self) -> Flag {
+        self.syn = true;
+        self
+    }
+
+    pub fn get_enable_flags(&self) -> Vec<&str>{
+        let mut vec : Vec<&str> = vec![];
+        if self.syn {
+            vec.push("syn");
+        }
+        if self.ack {
+            vec.push("ack");
+        }
+        vec
+    }
+}
+
+impl Display for Flag {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}", self.get_enable_flags().join(","))
+    }
+}
+
+

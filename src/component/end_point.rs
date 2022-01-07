@@ -31,13 +31,12 @@ impl EndPoint {
     }
     pub fn syn(&self, dest_port:u16) -> Result<(), ()> {
         let mut status = self.status.lock().unwrap();
-
         match *status {
             Status::CLOSED => {
-                *status = Status::SynSend;
-                let header = IPV4Header::new(self.port, dest_port, self.isn(), 0, Flag::SYN);
+                let header = IPV4Header::new(self.port, dest_port, self.isn(), 0, Flag::new().enable_syn());
                 let syn_packet = IPV4Packet { header };
                 self.tx.send(syn_packet).unwrap();
+                *status = Status::SynSend;
                 Ok(())
             }
             _ => Err(()),
@@ -73,7 +72,6 @@ impl EndPoint {
                 Status::SynSend => {
                     self.handle_while_syn_sent(data, status).unwrap();                    
                 }
-
                 _ => {
                     println!(
                         "end point<{}>收到异常状态的packet，当前状态为{:?}",
@@ -85,12 +83,13 @@ impl EndPoint {
     }
 
     fn handle_while_listen(&self, data: IPV4Packet, mut status: MutexGuard<Status>) -> Result<(), SendError<IPV4Packet>> {
+        //当处于listen状态的时候，如果发来的不是syn包，则返回一个RST
         let ack_packet = IPV4Packet::new(IPV4Header::new(
             self.port,
             data.header.src_port,
             self.isn(),          //需要随机生成一个isn
             data.header.seq + 1, // 根据对方
-            Flag::ACK,
+            Flag::new().enable_ack(),
         ));
         *status = Status::SynReceived;
         self.tx.send(ack_packet)
@@ -103,7 +102,7 @@ impl EndPoint {
             data.header.src_port,
             data.header.ack, //第三次握手不消耗seq体现在第三次握手后的下一个包的seq不变
             data.header.seq + 1,
-            Flag::ACK,
+            Flag::new().enable_ack().enable_syn(),
         ));
         *status = Status::ESTABLISHED;
         self.tx.send(ack_packet)
@@ -115,9 +114,10 @@ impl EndPoint {
 
     fn display_packet(&self, packet: &IPV4Packet) {
         println!(
-            "[{}] {} ⟹  {}, {:?}",
+            "[{}] {} ⟹  {}, {}",
             self.name, packet.header.src_port, packet.header.dest_port, packet
         );
+        // println!("{}", packet);
     }
 }
 #[derive(Copy, Clone, Debug)]
