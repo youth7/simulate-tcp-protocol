@@ -14,7 +14,7 @@ impl IPV4Packet {
 
 impl Display for IPV4Packet{
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "seq:{} ack:{} flag:{}", self.header.seq, self.header.ack, self.header.flag)
+        write!(f, "{} Seq={}", self.header.flag, self.header.seq)
     }
 }
 
@@ -95,7 +95,7 @@ impl Flag {
 
 impl Display for Flag {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{}", self.get_enable_flags().join(","))
+        write!(f, "[{}]", self.get_enable_flags().join(", "))
     }
 }
 
